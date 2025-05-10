@@ -35,7 +35,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 // Importar directamente nuestros componentes
-import PersonalList from '../personal/PersonalList';
+import PersonalListing from '../personal/PersonalListing';
 import AuditoriasList from '../auditorias/AuditoriasList';
 import NormasList from '../normas/NormasList';
 import DocumentosList from '../documentos/DocumentosList';
@@ -76,7 +76,7 @@ const MenuPrincipal = () => {
       case 'noticias':
         return <NoticiasListing />;
       case 'personal':
-        return <PersonalList />;
+        return <PersonalListing />;
       case 'auditorias':
         return <AuditoriasList />;
       case 'normas':

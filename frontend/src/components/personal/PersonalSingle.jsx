@@ -1,229 +1,326 @@
-
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
 import { 
-  ArrowLeft,
-  Users,
-  Pencil,
-  Trash2,
-  Building2,
-  GraduationCap,
-  Award,
-  Calendar,
-  Mail,
-  Phone,
+  ArrowLeft, 
+  Pencil, 
+  Trash2, 
+  Briefcase, 
+  Mail, 
+  Phone, 
+  Calendar, 
+  User, 
   MapPin,
+  Award,
   BookOpen,
-  Briefcase,
-  Star,
-  BarChart2
+  ChevronDown,
+  ChevronRight
 } from "lucide-react";
 
-function PersonalSingle({ persona, onBack, onEdit, onDelete }) {
+function PersonalSingle({ person, onBack, onEdit, onDelete }) {
+  const [expandedSections, setExpandedSections] = useState({
+    formacion: false,
+    experiencia: false,
+    competencias: false
+  });
+
+  const toggleSection = (section) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
+  // Parsear los datos de formación académica y experiencia laboral
+  const formacionAcademica = person.formacion_academica ? JSON.parse(person.formacion_academica) : [];
+  const experienciaLaboral = person.experiencia_laboral ? JSON.parse(person.experiencia_laboral) : [];
+
   return (
-    <div className="space-y-6">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      className="container mx-auto p-4"
+    >
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <Button variant="ghost" onClick={onBack}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Volver a Personal
-        </Button>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onBack}
+            className="mr-2"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <h1 className="text-2xl font-bold">{person.nombre}</h1>
+          {person.numero && (
+            <Badge variant="outline" className="ml-3">
+              {person.numero}
+            </Badge>
+          )}
+        </div>
         <div className="flex space-x-2">
-          <Button variant="outline" onClick={() => onEdit(persona)}>
-            <Pencil className="mr-2 h-4 w-4" />
+          <Button variant="outline" size="sm" onClick={() => onEdit(person)}>
+            <Pencil className="h-4 w-4 mr-2" />
             Editar
           </Button>
-          <Button variant="destructive" onClick={() => {
-            onDelete(persona.id);
-            onBack();
-          }}>
-            <Trash2 className="mr-2 h-4 w-4" />
+          <Button 
+            variant="destructive" 
+            size="sm" 
+            onClick={() => onDelete(person.id)}
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
             Eliminar
           </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-6">
-        {/* Main Content - 2 columns */}
-        <div className="col-span-2 space-y-6">
-          {/* Header Info */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-card border border-border rounded-lg p-6"
-          >
-            <div className="flex items-start space-x-4">
-              <div className="w-24 h-24 rounded-lg overflow-hidden">
-                <img 
-                  src={persona.imagen || "https://images.unsplash.com/photo-1578390432942-d323db577792"}
-                  alt={`Foto de ${persona.nombre}`}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="flex-1">
-                <h1 className="text-2xl font-bold">{persona.nombre}</h1>
-                <div className="flex items-center mt-2 space-x-4">
-                  <span className="flex items-center text-sm text-muted-foreground">
-                    <Building2 className="h-4 w-4 mr-1" />
-                    {persona.puesto}
-                  </span>
-                  <span className="flex items-center text-sm text-muted-foreground">
-                    <Building2 className="h-4 w-4 mr-1" />
-                    {persona.departamento}
-                  </span>
-                </div>
-                <div className="flex items-center mt-2 space-x-4">
-                  <span className="flex items-center text-sm text-muted-foreground">
-                    <Mail className="h-4 w-4 mr-1" />
-                    {persona.email}
-                  </span>
-                  <span className="flex items-center text-sm text-muted-foreground">
-                    <Phone className="h-4 w-4 mr-1" />
-                    {persona.telefono}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Información Personal */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="bg-card border border-border rounded-lg p-6 space-y-4"
-          >
-            <h2 className="text-lg font-semibold flex items-center">
-              <Users className="h-5 w-5 mr-2" />
-              Información Personal
-            </h2>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-muted-foreground">Documento de Identidad</p>
-                <p>{persona.documentoIdentidad}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Fecha de Ingreso</p>
-                <p>{new Date(persona.fechaIngreso).toLocaleDateString()}</p>
-              </div>
-              <div className="col-span-2">
-                <p className="text-sm text-muted-foreground">Dirección</p>
-                <p>{persona.direccion}</p>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Formación y Experiencia */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="grid grid-cols-2 gap-6"
-          >
-            <div className="bg-card border border-border rounded-lg p-6">
-              <h2 className="text-lg font-semibold flex items-center mb-4">
-                <GraduationCap className="h-5 w-5 mr-2" />
-                Formación Académica
-              </h2>
-              <div className="space-y-4">
-                {persona.formacionAcademica?.map((formacion, index) => (
-                  <div key={index} className="space-y-2">
-                    <h3 className="font-medium">{formacion.titulo}</h3>
-                    <p className="text-sm text-muted-foreground">{formacion.institucion}</p>
-                    <p className="text-sm text-muted-foreground">Año: {formacion.anioFinalizacion}</p>
-                    {formacion.descripcion && (
-                      <p className="text-sm text-muted-foreground">{formacion.descripcion}</p>
-                    )}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Columna izquierda - Información principal */}
+        <div className="md:col-span-2 space-y-6">
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex flex-col md:flex-row gap-6">
+                {/* Foto de perfil */}
+                <div className="flex-shrink-0">
+                  <div className="h-40 w-40 rounded-lg overflow-hidden border">
+                    <img
+                      src={person.imagen || "/images/personal/v3_0277343.jpg"}
+                      alt={person.nombre}
+                      className="h-full w-full object-cover"
+                      onError={(e) => {
+                        e.target.src = "/images/personal/v3_0277343.jpg";
+                      }}
+                    />
                   </div>
-                ))}
-              </div>
-            </div>
-            <div className="bg-card border border-border rounded-lg p-6">
-              <h2 className="text-lg font-semibold flex items-center mb-4">
-                <Briefcase className="h-5 w-5 mr-2" />
-                Experiencia Laboral
-              </h2>
-              <div className="space-y-4">
-                {persona.experienciaLaboral?.map((experiencia, index) => (
-                  <div key={index} className="space-y-2">
-                    <h3 className="font-medium">{experiencia.puesto}</h3>
-                    <p className="text-sm text-muted-foreground">{experiencia.empresa}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {new Date(experiencia.fechaInicio).toLocaleDateString()} - 
-                      {experiencia.fechaFin ? new Date(experiencia.fechaFin).toLocaleDateString() : 'Actual'}
-                    </p>
-                    {experiencia.descripcion && (
-                      <p className="text-sm text-muted-foreground">{experiencia.descripcion}</p>
-                    )}
+                </div>
+
+                {/* Detalles personales */}
+                <div className="flex flex-col space-y-4 flex-grow">
+                  <div className="flex items-center">
+                    <Briefcase className="h-5 w-5 text-muted-foreground mr-2" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Puesto</p>
+                      <p className="font-medium">{person.puesto || "No especificado"}</p>
+                    </div>
                   </div>
-                ))}
+
+                  <div className="flex items-center">
+                    <User className="h-5 w-5 text-muted-foreground mr-2" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Departamento</p>
+                      <p className="font-medium">{person.departamento || "No especificado"}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center">
+                    <Mail className="h-5 w-5 text-muted-foreground mr-2" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Email</p>
+                      <p className="font-medium">{person.email || "No especificado"}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center">
+                    <Phone className="h-5 w-5 text-muted-foreground mr-2" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Teléfono</p>
+                      <p className="font-medium">{person.telefono || "No especificado"}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center">
+                    <Calendar className="h-5 w-5 text-muted-foreground mr-2" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Fecha de Ingreso</p>
+                      <p className="font-medium">{person.fecha_ingreso || "No especificada"}</p>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-          </motion.div>
+
+              <Separator className="my-6" />
+
+              <div className="space-y-4">
+                {person.documento_identidad && (
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">Documento de Identidad</p>
+                    <p>{person.documento_identidad}</p>
+                  </div>
+                )}
+
+                {person.direccion && (
+                  <div>
+                    <div className="flex items-center mb-1">
+                      <MapPin className="h-4 w-4 text-muted-foreground mr-1" />
+                      <p className="text-sm text-muted-foreground">Dirección</p>
+                    </div>
+                    <p>{person.direccion}</p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Sección de competencias */}
+          <Card>
+            <CardContent className="p-6">
+              <div 
+                className="flex items-center justify-between cursor-pointer" 
+                onClick={() => toggleSection('competencias')}
+              >
+                <div className="flex items-center">
+                  <Award className="h-5 w-5 text-muted-foreground mr-2" />
+                  <h2 className="text-xl font-semibold">Competencias y Evaluación</h2>
+                </div>
+                {expandedSections.competencias ? (
+                  <ChevronDown className="h-5 w-5" />
+                ) : (
+                  <ChevronRight className="h-5 w-5" />
+                )}
+              </div>
+
+              {expandedSections.competencias && (
+                <div className="mt-4 space-y-4">
+                  {person.competencias && (
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-2">Competencias</p>
+                      <p className="whitespace-pre-line">{person.competencias}</p>
+                    </div>
+                  )}
+
+                  <Separator />
+
+                  {person.evaluacion_desempeno && (
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-2">Evaluación de Desempeño</p>
+                      <Badge variant={
+                        person.evaluacion_desempeno === "Sobresaliente" ? "success" :
+                        person.evaluacion_desempeno === "Muy bueno" ? "default" :
+                        person.evaluacion_desempeno === "Bueno" ? "secondary" :
+                        person.evaluacion_desempeno === "Regular" ? "outline" :
+                        "destructive"
+                      }>
+                        {person.evaluacion_desempeno}
+                      </Badge>
+                    </div>
+                  )}
+
+                  {person.capacitaciones_recibidas && (
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-2">Capacitaciones Recibidas</p>
+                      <p className="whitespace-pre-line">{person.capacitaciones_recibidas}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Sección de formación académica */}
+          {formacionAcademica.length > 0 && (
+            <Card>
+              <CardContent className="p-6">
+                <div 
+                  className="flex items-center justify-between cursor-pointer" 
+                  onClick={() => toggleSection('formacion')}
+                >
+                  <div className="flex items-center">
+                    <BookOpen className="h-5 w-5 text-muted-foreground mr-2" />
+                    <h2 className="text-xl font-semibold">Formación Académica</h2>
+                  </div>
+                  {expandedSections.formacion ? (
+                    <ChevronDown className="h-5 w-5" />
+                  ) : (
+                    <ChevronRight className="h-5 w-5" />
+                  )}
+                </div>
+
+                {expandedSections.formacion && (
+                  <div className="mt-4 space-y-4">
+                    {formacionAcademica.map((formacion, index) => (
+                      <React.Fragment key={index}>
+                        {index > 0 && <Separator className="my-4" />}
+                        <div>
+                          <div className="flex justify-between">
+                            <h3 className="font-semibold">{formacion.titulo}</h3>
+                            <p className="text-sm text-muted-foreground">{formacion.anioFinalizacion}</p>
+                          </div>
+                          <p className="text-muted-foreground">{formacion.institucion}</p>
+                          {formacion.descripcion && (
+                            <p className="mt-2">{formacion.descripcion}</p>
+                          )}
+                        </div>
+                      </React.Fragment>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Sección de experiencia laboral */}
+          {experienciaLaboral.length > 0 && (
+            <Card>
+              <CardContent className="p-6">
+                <div 
+                  className="flex items-center justify-between cursor-pointer" 
+                  onClick={() => toggleSection('experiencia')}
+                >
+                  <div className="flex items-center">
+                    <Briefcase className="h-5 w-5 text-muted-foreground mr-2" />
+                    <h2 className="text-xl font-semibold">Experiencia Laboral</h2>
+                  </div>
+                  {expandedSections.experiencia ? (
+                    <ChevronDown className="h-5 w-5" />
+                  ) : (
+                    <ChevronRight className="h-5 w-5" />
+                  )}
+                </div>
+
+                {expandedSections.experiencia && (
+                  <div className="mt-4 space-y-4">
+                    {experienciaLaboral.map((experiencia, index) => (
+                      <React.Fragment key={index}>
+                        {index > 0 && <Separator className="my-4" />}
+                        <div>
+                          <div className="flex justify-between">
+                            <h3 className="font-semibold">{experiencia.puesto}</h3>
+                            <p className="text-sm text-muted-foreground">
+                              {experiencia.fechaInicio} - {experiencia.fechaFin || "Actual"}
+                            </p>
+                          </div>
+                          <p className="text-muted-foreground">{experiencia.empresa}</p>
+                          {experiencia.descripcion && (
+                            <p className="mt-2">{experiencia.descripcion}</p>
+                          )}
+                        </div>
+                      </React.Fragment>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
         </div>
 
-        {/* Sidebar - 1 columna */}
+        {/* Columna derecha - Información adicional */}
         <div className="space-y-6">
-          {/* Competencias */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="bg-card border border-border rounded-lg p-6"
-          >
-            <h2 className="text-lg font-semibold flex items-center mb-4">
-              <Star className="h-5 w-5 mr-2" />
-              Competencias
-            </h2>
-            <div className="space-y-2">
-              {persona.competencias?.split('\n').map((competencia, index) => (
-                <div key={index} className="flex items-center space-x-2 p-2 rounded-md hover:bg-accent">
-                  <span className="w-2 h-2 rounded-full bg-primary" />
-                  <span>{competencia}</span>
-                </div>
-              ))}
-            </div>
-          </motion.div>
-
-          {/* Evaluación de Desempeño */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.1 }}
-            className="bg-card border border-border rounded-lg p-6"
-          >
-            <h2 className="text-lg font-semibold flex items-center mb-4">
-              <BarChart2 className="h-5 w-5 mr-2" />
-              Evaluación de Desempeño
-            </h2>
-            <p className="text-sm text-muted-foreground whitespace-pre-line">
-              {persona.evaluacionDesempeno}
-            </p>
-          </motion.div>
-
-          {/* Capacitaciones */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2 }}
-            className="bg-card border border-border rounded-lg p-6"
-          >
-            <h2 className="text-lg font-semibold flex items-center mb-4">
-              <BookOpen className="h-5 w-5 mr-2" />
-              Capacitaciones Recibidas
-            </h2>
-            <div className="space-y-2">
-              {persona.capacitacionesRecibidas?.split('\n').map((capacitacion, index) => (
-                <div key={index} className="flex items-center space-x-2 p-2 rounded-md hover:bg-accent">
-                  <GraduationCap className="h-4 w-4 text-muted-foreground" />
-                  <span>{capacitacion}</span>
-                </div>
-              ))}
-            </div>
-          </motion.div>
+          {person.observaciones && (
+            <Card>
+              <CardContent className="p-6">
+                <h2 className="text-xl font-semibold mb-4">Observaciones</h2>
+                <p className="whitespace-pre-line">{person.observaciones}</p>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
