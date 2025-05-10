@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
 import { 
   ClipboardList, 
   FileText, 
@@ -55,8 +57,10 @@ import MejorasListing from '../mejoras/MejorasListing';
 import NoticiasListing from '../noticias/NoticiasListing';
 import ProductosListing from '../productos/ProductosListing';
 
-const MenuPrincipal = () => {
+const MenuPrincipal = ({ onLogout }) => {
   const [selectedSection, setSelectedSection] = useState('noticias');
+  const { currentUser, logout } = useAuth();
+  const navigate = useNavigate();
 
   const handleSectionChange = (id) => {
     setSelectedSection(id);
@@ -118,14 +122,39 @@ const MenuPrincipal = () => {
     <div className="flex h-screen overflow-hidden">
       {/* Sidebar */}
       <div className="w-64 bg-black text-white h-full overflow-y-auto">
-        <div className="p-4 flex items-center">
-          <div className="h-10 w-10 rounded-full bg-green-600 flex items-center justify-center mr-3">
-            <span className="text-white font-bold">SGC</span>
+        <div className="p-4 flex items-center justify-between">
+          <div className="flex items-center">
+            <div className="h-10 w-10 rounded-full bg-green-600 flex items-center justify-center mr-3">
+              <span className="text-white font-bold">SGC</span>
+            </div>
+            <div>
+              <h2 className="text-sm font-bold text-white">Los Señores del Agro</h2>
+              <p className="text-xs text-gray-400">Sistema de Gestión de Calidad</p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-sm font-bold text-white">Los Señores del Agro</h2>
-            <p className="text-xs text-gray-400">Sistema de Gestión de Calidad</p>
+        </div>
+        
+        {/* Información del usuario */}
+        <div className="p-4 border-b border-gray-800">
+          <div className="flex items-center mb-2">
+            <div className="h-8 w-8 rounded-full bg-green-700 flex items-center justify-center mr-2">
+              <span className="text-white font-bold">{currentUser?.name?.charAt(0) || 'U'}</span>
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-white">{currentUser?.name || 'Usuario'}</h3>
+              <p className="text-xs text-gray-400">{currentUser?.role || 'Sin rol'}</p>
+            </div>
           </div>
+          <button
+            onClick={async () => {
+              await logout();
+              navigate('/login');
+              if (onLogout) onLogout();
+            }}
+            className="w-full text-xs bg-red-600 hover:bg-red-700 text-white py-1 px-2 rounded transition duration-150 ease-in-out"
+          >
+            Cerrar sesión
+          </button>
         </div>
         
         <div className="mt-4">

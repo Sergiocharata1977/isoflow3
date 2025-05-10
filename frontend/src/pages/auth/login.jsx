@@ -35,35 +35,39 @@ function LoginPage({ onLogin }) {
     setError("");
 
     try {
-      // Validate credentials
-      if ((formData.email === "admin" && formData.password === "admin")) {
-        // Save preferences if "remember me" is checked
-        if (formData.rememberMe) {
-          localStorage.setItem("rememberMe", "true");
-          localStorage.setItem("savedEmail", formData.email);
-        } else {
-          localStorage.removeItem("rememberMe");
-          localStorage.removeItem("savedEmail");
-        }
-
-        onLogin({
-          name: "Administrador",
-          email: formData.email,
-          role: "admin"
-        });
-
-        toast({
-          title: "Inicio de sesión exitoso",
-          description: "Bienvenido al sistema"
-        });
+      // Importar el servicio de autenticación dinámicamente
+      const { authService } = await import("@/services/auth");
+      
+      // Intentar iniciar sesión
+      const userData = await authService.login(formData.email, formData.password);
+      
+      // Guardar preferencias si "recordar sesión" está marcado
+      if (formData.rememberMe) {
+        localStorage.setItem("rememberMe", "true");
+        localStorage.setItem("savedEmail", formData.email);
       } else {
-        throw new Error("Credenciales incorrectas");
+        localStorage.removeItem("rememberMe");
+        localStorage.removeItem("savedEmail");
       }
+
+      // Llamar a la función onLogin con los datos del usuario
+      onLogin({
+        name: userData.name,
+        email: userData.email,
+        role: userData.role,
+        id: userData.id
+      });
+
+      toast({
+        title: "Inicio de sesión exitoso",
+        description: "Bienvenido al sistema"
+      });
     } catch (error) {
-      setError("Usuario o contraseña incorrectos");
+      console.error("Error de inicio de sesión:", error);
+      setError(error.message || "Usuario o contraseña incorrectos");
       toast({
         title: "Error de autenticación",
-        description: "Usuario o contraseña incorrectos",
+        description: error.message || "Usuario o contraseña incorrectos",
         variant: "destructive"
       });
     } finally {

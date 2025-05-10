@@ -291,14 +291,9 @@ function NoticiasListing() {
 
   return (
     <div className="space-y-8">
-      {/* Logo Header */}
-      <div className="flex flex-col items-center justify-center mb-12">
-        <img 
-          src="https://storage.googleapis.com/hostinger-horizons-assets-prod/8dbf3f66-6a64-4665-ae25-f32f332f4fba/8e73c93e635d333773a9e15271a25261.png"
-          alt="Los Señores del Agro"
-          className="h-24 mb-4"
-        />
-        <h1 className="text-2xl font-bold text-center">Noticias Internas</h1>
+      {/* Header */}
+      <div className="flex flex-col items-center justify-center mb-8">
+        <h1 className="text-2xl font-bold text-center">Noticias internas</h1>
         <p className="text-muted-foreground text-center">
           Mantente al día con las últimas novedades de Los Señores del Agro
         </p>
