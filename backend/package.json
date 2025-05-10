@@ -1,0 +1,25 @@
+{
+  "name": "iso-flow-backend",
+  "version": "1.0.0",
+  "description": "Backend para la aplicación ISO Flow",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node -r dotenv/config index.js",
+    "init-db": "node -r dotenv/config initDb.js",
+    "create-all-tables": "node -r dotenv/config scripts/createAllTables.js",
+    "create-procesos-tables": "node -r dotenv/config scripts/createProcesosTables.js",
+    "create-puestos-table": "node -r dotenv/config scripts/createPuestosTable.js",
+    "reset-puestos-table": "node -r dotenv/config scripts/resetPuestosTable.js",
+    "insert-test-data": "node -r dotenv/config scripts/insertTestData.js",
+    "insert-puestos-data": "node -r dotenv/config scripts/insertPuestosData.js",
+    "insert-procesos-data": "node -r dotenv/config scripts/insertTestDataProcesos.js",
+    "insert-auditorias-data": "node -r dotenv/config scripts/insertTestDataAuditorias.js",
+    "insert-documentos-data": "node -r dotenv/config scripts/insertTestDataDocumentos.js"
+  },
+  "dependencies": {
+    "@libsql/client": "^0.15.4",
+    "dotenv": "^16.5.0"
+  }
+}
