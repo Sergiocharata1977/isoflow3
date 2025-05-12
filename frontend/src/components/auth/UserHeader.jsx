@@ -14,6 +14,15 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { ChevronDown, User, LogOut } from "lucide-react";
 
 function UserHeader({ user, onLogout }) {
+  // Si no hay usuario, no renderizamos nada
+  if (!user) return null;
+  
+  // Obtener las iniciales del nombre para el avatar
+  const getInitials = () => {
+    if (!user.name) return user.email?.charAt(0).toUpperCase() || '?';
+    return user.name.split(' ').map(n => n[0]).join('').toUpperCase();
+  };
+
   return (
     <div className="fixed top-4 right-4 z-50">
       <motion.div
@@ -23,19 +32,27 @@ function UserHeader({ user, onLogout }) {
       >
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="flex items-center space-x-2">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={user.avatar} alt={user.name} />
-                <AvatarFallback>
-                  {user.name?.split(" ").map(n => n[0]).join("")}
-                </AvatarFallback>
+            <Button variant="ghost" className="flex items-center space-x-2 bg-white/10 backdrop-blur-sm border border-white/20">
+              <Avatar className="h-8 w-8 bg-primary">
+                {/* Usar la URL de avatar si existe, o mostrar iniciales */}
+                {user.avatar ? (
+                  <AvatarImage src={user.avatar} alt={user.name || user.email} />
+                ) : (
+                  <AvatarFallback>{getInitials()}</AvatarFallback>
+                )}
               </Avatar>
-              <span className="font-medium">{user.name}</span>
+              <span className="font-medium">{user.name || user.email}</span>
               <ChevronDown className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuLabel>Mi Cuenta</DropdownMenuLabel>
+            <DropdownMenuLabel>
+              {user.role && (
+                <span className="block text-xs text-muted-foreground mt-1">
+                  {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                </span>
+              )}
+            </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem className="cursor-pointer">
               <User className="mr-2 h-4 w-4" />
