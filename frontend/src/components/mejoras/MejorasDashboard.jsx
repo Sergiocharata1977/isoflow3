@@ -2,29 +2,7 @@ import React from 'react';
 import { Filter } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { useTheme } from '@/context/ThemeContext';
-import ReactEChartsCore from 'echarts-for-react/lib/core';
-import {
-  PieChart,
-  PieSeriesOption,
-  DatasetComponentOption,
-  TitleComponentOption,
-  TooltipComponentOption,
-  LegendComponentOption,
-  GridComponentOption,
-  XAxisComponentOption,
-  YAxisComponentOption,
-  BarSeriesOption,
-} from 'echarts/charts';
-import {
-  DatasetComponent,
-  TitleComponent,
-  TooltipComponent,
-  LegendComponent,
-  GridComponent,
-  XAxisComponent,
-  YAxisComponent,
-} from 'echarts/components';
-import { CanvasRenderer } from 'echarts/renderers';
+import ReactECharts from 'echarts-for-react';
 
 // Datos de ejemplo para mostrar en el dashboard si no se proporcionan mejoras
 const mejorasEjemplo = [

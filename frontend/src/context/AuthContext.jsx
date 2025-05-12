@@ -17,12 +17,15 @@ export function AuthProvider({ children }) {
   // Efecto para verificar si hay un usuario en localStorage al cargar la aplicación
   useEffect(() => {
     const checkUserAuth = async () => {
+      console.log('Verificando autenticación...');
       try {
         const user = authService.getCurrentUser();
+        console.log('Usuario recuperado:', user);
         setCurrentUser(user);
       } catch (error) {
         console.error('Error al verificar la autenticación:', error);
       } finally {
+        console.log('Finalizando verificación, loading:', loading);
         setLoading(false);
       }
     };
@@ -32,7 +35,9 @@ export function AuthProvider({ children }) {
 
   // Función para iniciar sesión
   const login = async (user) => {
+    console.log('Login iniciado con usuario:', user);
     setCurrentUser(user);
+    console.log('Usuario establecido en el contexto');
   };
 
   // Función para cerrar sesión
