@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
+import { useTheme } from "@/context/ThemeContext";
+import ThemeToggle from "../theme/ThemeToggle";
 import {
   ClipboardList,
   FileText,
@@ -26,6 +28,7 @@ import {
   BarChart,
   ArrowUpCircle,
   Package,
+  LogOut,
 } from "lucide-react";
 
 // Importar componentes de dropdown
@@ -57,8 +60,10 @@ import MejorasListing from "../mejoras/MejorasListing";
 import NoticiasListing from "../noticias/NoticiasListing";
 import ProductosListing from "../productos/ProductosListing";
 import UserHeader from "../auth/UserHeader";
+import DashboardCentral from "../dashboard/DashboardCentral";
 
 const MenuPrincipal = ({ onLogout }) => {
+  const { isDark } = useTheme();
   const [selectedSection, setSelectedSection] = useState("noticias");
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
@@ -82,6 +87,8 @@ const MenuPrincipal = ({ onLogout }) => {
     switch (selectedSection) {
       case "noticias":
         return <NoticiasListing />;
+      case "tablero":
+        return <DashboardCentral />;
       case "personal":
         return <PersonalListing />;
       case "auditorias":
@@ -122,7 +129,7 @@ const MenuPrincipal = ({ onLogout }) => {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className={`flex h-screen overflow-hidden ${isDark ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-900'}`}>
       {/* UserHeader arriba a la derecha */}
       <UserHeader
         user={currentUser}
@@ -132,22 +139,21 @@ const MenuPrincipal = ({ onLogout }) => {
           if (onLogout) onLogout();
         }}
       />
-      {/* Sidebar */}
-      <div className="w-64 bg-black text-white h-full overflow-y-auto">
-        <div className="p-4 flex items-center justify-between">
-          <div className="flex items-center">
-            <div className="h-10 w-10 rounded-full bg-green-600 flex items-center justify-center mr-3">
-              <span className="text-white font-bold">SGC</span>
-            </div>
-            <div>
-              <h2 className="text-sm font-bold text-white">
-                Los Señores del Agro
-              </h2>
-              <p className="text-xs text-gray-400">
-                Sistema de Gestión de Calidad
-              </p>
-            </div>
+      {/* Sidebar - Menú lateral */}
+      <div className={`w-64 ${isDark ? 'bg-gray-800' : 'bg-green-800'} text-white`}>
+        <div className={`p-4 ${isDark ? 'bg-gray-900' : 'bg-green-900'} flex items-center space-x-3`}>
+          <div className={`rounded-full ${isDark ? 'bg-gray-100 text-gray-900' : 'bg-white text-green-800'} w-10 h-10 flex items-center justify-center font-bold`}>
+            SGC
           </div>
+          <div className="flex-1">
+            <div className="font-bold">Los Señores del Agro</div>
+            <div className="text-xs opacity-80">Sistema de Gestión de Calidad</div>
+          </div>
+        </div>
+        
+        {/* Botón de cambio de tema */}
+        <div className="flex justify-center my-3">
+          <ThemeToggle />
         </div>
 
         <div className="mt-4">
@@ -188,7 +194,33 @@ const MenuPrincipal = ({ onLogout }) => {
             <span>Calendario</span>
           </button>
 
-          {/* Recursos Humanos - Ahora con dropdown */}
+          {/* Botón de Mejoras independiente */}
+          <button
+            onClick={() => handleSectionChange("mejoras")}
+            className={`flex items-center w-full px-4 py-2 text-left ${
+              selectedSection === "mejoras"
+                ? "bg-green-600 text-white"
+                : "text-gray-300 hover:bg-gray-800"
+            }`}
+          >
+            <ArrowUpCircle className="h-5 w-5 mr-2" />
+            <span>Mejoras</span>
+          </button>
+
+          {/* Botón de Auditorías independiente */}
+          <button
+            onClick={() => handleSectionChange("auditorias")}
+            className={`flex items-center w-full px-4 py-2 text-left ${
+              selectedSection === "auditorias"
+                ? "bg-green-600 text-white"
+                : "text-gray-300 hover:bg-gray-800"
+            }`}
+          >
+            <ClipboardList className="h-5 w-5 mr-2" />
+            <span>Auditorías</span>
+          </button>
+
+          {/* Recursos Humanos */}
           <div className="mt-2 px-4 py-1 text-xs font-semibold text-gray-400 uppercase">
             Recursos Humanos
           </div>
@@ -210,45 +242,43 @@ const MenuPrincipal = ({ onLogout }) => {
               >
                 <Users className="h-5 w-5 mr-2" />
                 <span>Recursos Humanos</span>
-                <ChevronDown className="h-4 w-4 ml-auto" />
+                <ChevronDown className="ml-auto h-5 w-5" />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent
-              className="bg-gray-900 text-gray-300 border-gray-700"
-              side="right"
-              sideOffset={5}
+            <DropdownMenuContent 
+              className={`min-w-[220px] ${isDark ? 'bg-gray-800 border-gray-700 text-gray-200' : 'bg-white border-gray-200 text-gray-800'}`}
             >
               <DropdownMenuItem
-                className="hover:bg-gray-800 hover:text-white focus:bg-gray-800 focus:text-white px-4 py-3 text-base"
                 onClick={() => handleSectionChange("personal")}
+                className={isDark ? 'hover:bg-gray-700 focus:bg-gray-700' : 'hover:bg-gray-100 focus:bg-gray-100'}
               >
                 <Users className="h-5 w-5 mr-3" />
                 <span>Personal</span>
               </DropdownMenuItem>
               <DropdownMenuItem
-                className="hover:bg-gray-800 hover:text-white focus:bg-gray-800 focus:text-white px-4 py-3 text-base"
                 onClick={() => handleSectionChange("departamentos")}
+                className={isDark ? 'hover:bg-gray-700 focus:bg-gray-700' : 'hover:bg-gray-100 focus:bg-gray-100'}
               >
                 <Building2 className="h-5 w-5 mr-3" />
                 <span>Departamentos</span>
               </DropdownMenuItem>
               <DropdownMenuItem
-                className="hover:bg-gray-800 hover:text-white focus:bg-gray-800 focus:text-white px-4 py-3 text-base"
                 onClick={() => handleSectionChange("puestos")}
+                className={isDark ? 'hover:bg-gray-700 focus:bg-gray-700' : 'hover:bg-gray-100 focus:bg-gray-100'}
               >
                 <Briefcase className="h-5 w-5 mr-3" />
                 <span>Puestos</span>
               </DropdownMenuItem>
               <DropdownMenuItem
-                className="hover:bg-gray-800 hover:text-white focus:bg-gray-800 focus:text-white px-4 py-3 text-base"
                 onClick={() => handleSectionChange("capacitaciones")}
+                className={isDark ? 'hover:bg-gray-700 focus:bg-gray-700' : 'hover:bg-gray-100 focus:bg-gray-100'}
               >
                 <GraduationCap className="h-5 w-5 mr-3" />
                 <span>Capacitaciones</span>
               </DropdownMenuItem>
               <DropdownMenuItem
-                className="hover:bg-gray-800 hover:text-white focus:bg-gray-800 focus:text-white px-4 py-3 text-base"
                 onClick={() => handleSectionChange("evaluaciones")}
+                className={isDark ? 'hover:bg-gray-700 focus:bg-gray-700' : 'hover:bg-gray-100 focus:bg-gray-100'}
               >
                 <ClipboardCheck className="h-5 w-5 mr-3" />
                 <span>Evaluaciones</span>
@@ -256,12 +286,11 @@ const MenuPrincipal = ({ onLogout }) => {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Sistema de Gestión */}
+          {/* Procesos - Ahora con dropdown */}
           <div className="mt-2 px-4 py-1 text-xs font-semibold text-gray-400 uppercase">
             Sistema de Gestión
           </div>
 
-          {/* Procesos - Ahora con dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
@@ -279,49 +308,41 @@ const MenuPrincipal = ({ onLogout }) => {
               >
                 <Activity className="h-5 w-5 mr-2" />
                 <span>Procesos</span>
-                <ChevronDown className="h-4 w-4 ml-auto" />
+                <ChevronDown className="ml-auto h-5 w-5" />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent
-              className="bg-gray-900 text-gray-300 border-gray-700"
-              side="right"
-              sideOffset={5}
+            <DropdownMenuContent 
+              className={`min-w-[220px] ${isDark ? 'bg-gray-800 border-gray-700 text-gray-200' : 'bg-white border-gray-200 text-gray-800'}`}
             >
-              <DropdownMenuItem
-                className="hover:bg-gray-800 hover:text-white focus:bg-gray-800 focus:text-white px-4 py-3 text-base"
+              <DropdownMenuItem 
                 onClick={() => handleSectionChange("procesos")}
+                className={isDark ? 'hover:bg-gray-700 focus:bg-gray-700' : 'hover:bg-gray-100 focus:bg-gray-100'}
               >
                 <Activity className="h-5 w-5 mr-3" />
                 <span>Procesos</span>
               </DropdownMenuItem>
-              <DropdownMenuItem
-                className="hover:bg-gray-800 hover:text-white focus:bg-gray-800 focus:text-white px-4 py-3 text-base"
+              <DropdownMenuItem 
                 onClick={() => handleSectionChange("objetivos")}
+                className={isDark ? 'hover:bg-gray-700 focus:bg-gray-700' : 'hover:bg-gray-100 focus:bg-gray-100'}
               >
                 <Target className="h-5 w-5 mr-3" />
                 <span>Objetivos</span>
               </DropdownMenuItem>
               <DropdownMenuItem
-                className="hover:bg-gray-800 hover:text-white focus:bg-gray-800 focus:text-white px-4 py-3 text-base"
                 onClick={() => handleSectionChange("indicadores")}
+                className={isDark ? 'hover:bg-gray-700 focus:bg-gray-700' : 'hover:bg-gray-100 focus:bg-gray-100'}
               >
-                <BarChart className="h-5 w-5 mr-3" />
+                <LineChart className="h-5 w-5 mr-3" />
                 <span>Indicadores</span>
               </DropdownMenuItem>
               <DropdownMenuItem
-                className="hover:bg-gray-800 hover:text-white focus:bg-gray-800 focus:text-white px-4 py-3 text-base"
                 onClick={() => handleSectionChange("mediciones")}
+                className={isDark ? 'hover:bg-gray-700 focus:bg-gray-700' : 'hover:bg-gray-100 focus:bg-gray-100'}
               >
-                <LineChart className="h-5 w-5 mr-3" />
+                <BarChart2 className="h-5 w-5 mr-3" />
                 <span>Mediciones</span>
               </DropdownMenuItem>
-              <DropdownMenuItem
-                className="hover:bg-gray-800 hover:text-white focus:bg-gray-800 focus:text-white px-4 py-3 text-base"
-                onClick={() => handleSectionChange("mejoras")}
-              >
-                <ArrowUpCircle className="h-5 w-5 mr-3" />
-                <span>Mejoras</span>
-              </DropdownMenuItem>
+
             </DropdownMenuContent>
           </DropdownMenu>
 
@@ -427,7 +448,7 @@ const MenuPrincipal = ({ onLogout }) => {
       </div>
 
       {/* Main content */}
-      <div className="flex-1 overflow-y-auto p-4 bg-gray-100">
+      <div className={`flex-1 overflow-auto ${isDark ? 'bg-gray-900' : 'bg-white'}`}>
         {renderSection()}
       </div>
     </div>

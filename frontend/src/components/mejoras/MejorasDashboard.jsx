@@ -1,17 +1,30 @@
-import React from "react";
-import { motion } from "framer-motion";
-import { 
-  ArrowUpCircle, 
-  Wrench, 
-  Search, 
-  ShieldCheck, 
-  Shield, 
-  ClipboardCheck, 
-  CheckCircle2,
-  BarChart2,
-  Filter
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
+import React from 'react';
+import { Filter } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { useTheme } from '@/context/ThemeContext';
+import ReactEChartsCore from 'echarts-for-react/lib/core';
+import {
+  PieChart,
+  PieSeriesOption,
+  DatasetComponentOption,
+  TitleComponentOption,
+  TooltipComponentOption,
+  LegendComponentOption,
+  GridComponentOption,
+  XAxisComponentOption,
+  YAxisComponentOption,
+  BarSeriesOption,
+} from 'echarts/charts';
+import {
+  DatasetComponent,
+  TitleComponent,
+  TooltipComponent,
+  LegendComponent,
+  GridComponent,
+  XAxisComponent,
+  YAxisComponent,
+} from 'echarts/components';
+import { CanvasRenderer } from 'echarts/renderers';
 
 // Datos de ejemplo para mostrar en el dashboard si no se proporcionan mejoras
 const mejorasEjemplo = [
@@ -37,6 +50,7 @@ const procesosEjemplo = [
 ];
 
 function MejorasDashboard({ mejoras = mejorasEjemplo }) {
+  const { isDark } = useTheme();
   const [procesoFiltro, setProcesoFiltro] = React.useState("");
   const [procesos, setProcesos] = React.useState(procesosEjemplo);
 
@@ -58,66 +72,41 @@ function MejorasDashboard({ mejoras = mejorasEjemplo }) {
     (!procesoFiltro || mejora.proceso_involucrado === procesoFiltro)
   );
 
-  // Contar mejoras por estado
-  const contarPorEstado = (estado) => {
-    return mejorasFiltradas.filter(mejora => mejora.estado === estado).length;
-  };
+  // Colores y configuración del tema
+  const colors = ['#10b981', '#f59e0b', '#3b82f6', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6'];
+  const textColor = isDark ? '#e5e7eb' : '#374151';
+  const backgroundColor = isDark ? '#1f2937' : '#ffffff';
+  const borderColor = isDark ? '#374151' : '#e5e7eb';
 
-  const estados = [
-    { 
-      nombre: 'Hallazgo', 
-      icono: ArrowUpCircle, 
-      color: 'bg-blue-100', 
-      textColor: 'text-blue-800',
-      cantidad: contarPorEstado('Hallazgo')
-    },
-    { 
-      nombre: 'Corrección', 
-      icono: Wrench, 
-      color: 'bg-yellow-100', 
-      textColor: 'text-yellow-800',
-      cantidad: contarPorEstado('Corrección')
-    },
-    { 
-      nombre: 'Análisis de Causas', 
-      icono: Search, 
-      color: 'bg-purple-100', 
-      textColor: 'text-purple-800',
-      cantidad: contarPorEstado('Análisis de Causas')
-    },
-    { 
-      nombre: 'Acción Correctiva', 
-      icono: ShieldCheck, 
-      color: 'bg-green-100', 
-      textColor: 'text-green-800',
-      cantidad: contarPorEstado('Acción Correctiva')
-    },
-    { 
-      nombre: 'Acción Preventiva', 
-      icono: Shield, 
-      color: 'bg-indigo-100', 
-      textColor: 'text-indigo-800',
-      cantidad: contarPorEstado('Acción Preventiva')
-    },
-    { 
-      nombre: 'Planificación control', 
-      icono: ClipboardCheck, 
-      color: 'bg-orange-100', 
-      textColor: 'text-orange-800',
-      cantidad: contarPorEstado('Planificación control')
-    },
-    { 
-      nombre: 'Control Hecho', 
-      icono: CheckCircle2, 
-      color: 'bg-emerald-100', 
-      textColor: 'text-emerald-800',
-      cantidad: contarPorEstado('Control Hecho')
-    }
-  ];
+  // Datos para los gráficos
+  const estadosData = [
+    'Hallazgo',
+    'Corrección',
+    'Análisis de Causas',
+    'Acción Correctiva',
+    'Acción Preventiva',
+    'Planificación control',
+    'Control Hecho'
+  ].map((estado, index) => ({
+    name: estado,
+    value: mejorasFiltradas.filter(m => m.estado === estado).length,
+    itemStyle: { color: colors[index] }
+  }));
+
+  const procesoData = procesos.map(proceso => ({
+    name: proceso.titulo,
+    value: mejorasFiltradas.filter(m => m.proceso_involucrado === proceso.titulo).length
+  }));
+
+  // Configuración del tema para ECharts
+  const getChartTheme = () => ({
+    backgroundColor: backgroundColor,
+    textStyle: { color: textColor }
+  });
 
   return (
     <div className="space-y-6 mb-8">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-6">
         <h2 className="text-lg font-semibold">Resumen del Último Mes</h2>
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2">
@@ -141,55 +130,114 @@ function MejorasDashboard({ mejoras = mejorasEjemplo }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {estados.map((estado, index) => (
-          <motion.div
-            key={estado.nombre}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-            className={`${estado.color} rounded-lg p-4 flex flex-col items-center justify-center text-center`}
-          >
-            <estado.icono className={`h-8 w-8 ${estado.textColor} mb-2`} />
-            <span className={`text-2xl font-bold ${estado.textColor}`}>
-              {estado.cantidad}
-            </span>
-            <span className={`text-sm ${estado.textColor} mt-1`}>
-              {estado.nombre}
-            </span>
-          </motion.div>
-        ))}
-      </div>
-
-      <div className="bg-white border border-gray-200 rounded-lg p-6">
-        <h3 className="text-lg font-semibold mb-4 flex items-center">
-          <BarChart2 className="h-5 w-5 mr-2" />
-          Distribución de Mejoras
-        </h3>
-        <div className="h-64">
-          <div className="flex items-end h-full space-x-4">
-            {estados.map((estado, index) => {
-              const porcentaje = (estado.cantidad / (mejorasFiltradas.length || 1)) * 100;
-              return (
-                <motion.div
-                  key={estado.nombre}
-                  className="flex-1 flex flex-col items-center"
-                  initial={{ height: 0 }}
-                  animate={{ height: `${Math.max(porcentaje, 5)}%` }}
-                  transition={{ delay: index * 0.1, duration: 0.5 }}
-                >
-                  <div 
-                    className={`w-full ${estado.color} rounded-t-lg`}
-                    style={{ height: '100%' }}
-                  />
-                  <span className="text-xs text-gray-500 mt-2 transform -rotate-45 origin-top-left">
-                    {estado.nombre}
-                  </span>
-                </motion.div>
-              );
-            })}
+      {/* Resumen de estados */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <Card className={`p-6 ${isDark ? 'bg-card' : 'bg-white'}`}>
+          <h3 className="text-lg font-semibold mb-4">Estado de Mejoras</h3>
+          <div className="h-80">
+            <ReactECharts
+              option={{
+                tooltip: {
+                  trigger: 'item',
+                  formatter: '{a} <br/>{b}: {c} ({d}%)',
+                  backgroundColor: isDark ? '#374151' : '#ffffff',
+                  borderColor: borderColor,
+                  textStyle: { color: textColor }
+                },
+                legend: {
+                  orient: 'vertical',
+                  right: 10,
+                  top: 'center',
+                  textStyle: { color: textColor }
+                },
+                series: [{
+                  name: 'Estados',
+                  type: 'pie',
+                  radius: ['40%', '70%'],
+                  avoidLabelOverlap: false,
+                  itemStyle: {
+                    borderRadius: 10,
+                    borderColor: borderColor,
+                    borderWidth: 2
+                  },
+                  label: { show: false },
+                  emphasis: {
+                    label: {
+                      show: true,
+                      fontSize: '14',
+                      fontWeight: 'bold',
+                      color: textColor
+                    }
+                  },
+                  labelLine: { show: false },
+                  data: estadosData
+                }]
+              }}
+              theme={getChartTheme()}
+              style={{ height: '100%' }}
+            />
           </div>
-        </div>
+        </Card>
+
+        <Card className={`p-6 ${isDark ? 'bg-card' : 'bg-white'}`}>
+          <h3 className="text-lg font-semibold mb-4">Mejoras por Proceso</h3>
+          <div className="h-80">
+            <ReactECharts
+              option={{
+                tooltip: {
+                  trigger: 'axis',
+                  axisPointer: { type: 'shadow' },
+                  backgroundColor: isDark ? '#374151' : '#ffffff',
+                  borderColor: borderColor,
+                  textStyle: { color: textColor }
+                },
+                grid: {
+                  left: '3%',
+                  right: '4%',
+                  bottom: '3%',
+                  containLabel: true
+                },
+                xAxis: {
+                  type: 'category',
+                  data: procesoData.map(item => item.name),
+                  axisLabel: {
+                    color: textColor,
+                    rotate: 45
+                  }
+                },
+                yAxis: {
+                  type: 'value',
+                  axisLabel: { color: textColor }
+                },
+                series: [{
+                  name: 'Mejoras',
+                  type: 'bar',
+                  data: procesoData.map(item => item.value),
+                  itemStyle: {
+                    color: '#3b82f6',
+                    borderRadius: [4, 4, 0, 0]
+                  }
+                }]
+              }}
+              theme={getChartTheme()}
+              style={{ height: '100%' }}
+            />
+          </div>
+        </Card>
+
+        <Card className={`p-6 ${isDark ? 'bg-card' : 'bg-white'} lg:col-span-3`}>
+          <h3 className="text-lg font-semibold mb-4">Resumen de Estados</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {estadosData.map((estado, index) => (
+              <div key={estado.name} className="text-center p-4 rounded-lg border border-gray-200">
+                <div className="text-2xl font-bold" style={{ color: colors[index] }}>
+                  {estado.value}
+                </div>
+                <div className="text-sm text-gray-500 mt-1">{estado.name}</div>
+              </div>
+            ))}
+          </div>
+        </Card>
       </div>
     </div>
   );

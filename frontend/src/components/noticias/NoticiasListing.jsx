@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -14,8 +13,10 @@ import {
 } from "@/components/ui/dialog";
 import NoticiaModal from "./NoticiaModal";
 import NoticiaSingle from "./NoticiaSingle";
+import { useTheme } from "@/context/ThemeContext";
 
 function NoticiasListing() {
+  const { isDark } = useTheme();
   const { toast } = useToast();
   const [noticias, setNoticias] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -290,99 +291,114 @@ function NoticiasListing() {
   }
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="flex flex-col items-center justify-center mb-8">
-        <h1 className="text-2xl font-bold text-center">Noticias internas</h1>
-        <p className="text-muted-foreground text-center">
-          Mantente al día con las últimas novedades de Los Señores del Agro
-        </p>
-      </div>
+    <div className={`container mx-auto px-6 py-8 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Noticias internas</h1>
+          <p className={`mt-2 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+            Mantente al día con las últimas novedades de Los Señores del Agro
+          </p>
+        </div>
 
-      {/* Toolbar */}
-      <div className="flex justify-end mb-6">
-        <Button onClick={() => {
-          setSelectedNoticia(null);
-          setIsModalOpen(true);
-        }}>
-          <Plus className="h-4 w-4 mr-2" />
-          Nueva Noticia
-        </Button>
+        {/* Toolbar */}
+        <div className="flex justify-end">
+          <Button 
+            onClick={() => {
+              setSelectedNoticia(null);
+              setIsModalOpen(true);
+            }}
+            className={`${isDark ? 'bg-gray-700 hover:bg-gray-600' : ''}`}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Nueva Noticia
+          </Button>
+        </div>
       </div>
 
       {isLoading ? (
         <div className="flex justify-center items-center h-40">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <div className={`animate-spin rounded-full h-8 w-8 border-b-2 ${isDark ? 'border-white' : 'border-primary'}`}></div>
         </div>
       ) : (
-        /* Noticias */
-        <div className="space-y-6">
-          {noticias.map((noticia, index) => (
-            <motion.div
-              key={noticia.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className="bg-card border border-border rounded-lg overflow-hidden hover:border-primary transition-colors"
-            >
-              <div className="flex flex-col md:flex-row">
-                <div className="flex-1 p-6">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                      <Bell className="h-4 w-4" />
-                      <span>{new Date(noticia.fecha).toLocaleDateString()}</span>
-                    </div>
-                    <div className="flex space-x-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEdit(noticia);
-                        }}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-red-500 hover:text-red-700"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          confirmDelete(noticia.id);
-                        }}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                  <h2 className="text-xl font-semibold mb-3">{noticia.titulo}</h2>
-                  <p className="text-muted-foreground mb-4">{noticia.contenido}</p>
-                  <Button variant="ghost" className="group" onClick={() => handleViewDetail(noticia)}>
-                    Leer más
-                    <ChevronRight className="h-4 w-4 ml-2 transition-transform group-hover:translate-x-1" />
-                  </Button>
-                </div>
-                <div className="md:w-1/3">
-                  <img
-                    src={noticia.imagen}
-                    alt={noticia.titulo}
-                    className="w-full h-full object-cover aspect-video md:aspect-auto"
-                  />
-                </div>
+        <>
+          {noticias.length === 0 ? (
+            <div className={`flex justify-center items-center min-h-[300px] rounded-lg ${isDark ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'}`}>
+              <div className="text-center max-w-md p-8">
+                <Bell className={`mx-auto h-16 w-16 mb-4 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+                <h3 className={`text-xl font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>No hay noticias disponibles</h3>
+                <p className={`mb-6 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                  Haga clic en "Nueva Noticia" para comenzar.
+                </p>
               </div>
-            </motion.div>
-          ))}
-
-          {noticias.length === 0 && (
-            <div className="text-center py-12 bg-white border rounded-lg">
-              <Bell className="mx-auto h-12 w-12 text-muted-foreground" />
-              <p className="mt-4 text-muted-foreground">
-                No hay noticias disponibles. Haz clic en "Nueva Noticia" para comenzar.
-              </p>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {noticias.map((noticia, index) => (
+                <motion.div
+                  key={noticia.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className={`border rounded-lg overflow-hidden transition-colors ${isDark ? 'bg-gray-800 border-gray-700 hover:border-gray-600' : 'bg-white border-gray-200 hover:border-primary'}`}
+                >
+                  <div className="flex flex-col md:flex-row">
+                    <div className="flex-1 p-6">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className={`flex items-center space-x-2 text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                          <Bell className="h-4 w-4" />
+                          <span>{new Date(noticia.fecha).toLocaleDateString()}</span>
+                        </div>
+                        <div className="flex space-x-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className={isDark ? 'text-gray-300 hover:text-white hover:bg-gray-700' : ''}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEdit(noticia);
+                            }}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className={`${isDark ? 'text-red-400 hover:text-red-300 hover:bg-gray-700' : 'text-red-500 hover:text-red-700'}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              confirmDelete(noticia.id);
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                      <h2 className={`text-xl font-semibold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>{noticia.titulo}</h2>
+                      <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{noticia.contenido}</p>
+                      <Button 
+                        variant="ghost" 
+                        className={`group ${isDark ? 'text-gray-300 hover:text-white hover:bg-gray-700' : ''}`}
+                        onClick={() => handleViewDetail(noticia)}
+                      >
+                        Leer más
+                        <ChevronRight className="h-4 w-4 ml-2 transition-transform group-hover:translate-x-1" />
+                      </Button>
+                    </div>
+                    {noticia.imagen && (
+                      <div className="md:w-1/3">
+                        <img
+                          src={noticia.imagen}
+                          alt={noticia.titulo}
+                          className="w-full h-full object-cover aspect-video md:aspect-auto"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              ))}
             </div>
           )}
-        </div>
+        </>
       )}
 
       {/* Modal para crear/editar noticias */}
@@ -401,16 +417,23 @@ function NoticiasListing() {
       {/* Diálogo de confirmación para eliminar */}
       {isDeleteDialogOpen && (
         <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-          <DialogContent className="max-w-md">
+          <DialogContent className={`max-w-md ${isDark ? 'bg-gray-800 text-white border-gray-700' : ''}`}>
             <DialogHeader>
-              <DialogTitle>Confirmar eliminación</DialogTitle>
+              <DialogTitle className={isDark ? 'text-white' : ''}>Confirmar eliminación</DialogTitle>
             </DialogHeader>
-            <p className="py-4">¿Estás seguro de que deseas eliminar esta noticia? Esta acción no se puede deshacer.</p>
+            <p className={`py-4 ${isDark ? 'text-gray-300' : ''}`}>¿Estás seguro de que deseas eliminar esta noticia? Esta acción no se puede deshacer.</p>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+              <Button 
+                variant="outline" 
+                className={isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : ''}
+                onClick={() => setIsDeleteDialogOpen(false)}
+              >
                 Cancelar
               </Button>
-              <Button variant="destructive" onClick={() => handleDelete(noticiaToDelete)}>
+              <Button 
+                variant="destructive" 
+                onClick={() => handleDelete(noticiaToDelete)}
+              >
                 Eliminar
               </Button>
             </DialogFooter>

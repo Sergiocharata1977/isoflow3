@@ -32,31 +32,39 @@ export const TursoProvider = ({ children }) => {
         // Intentar ejecutar una consulta simple para verificar la conexión
         const result = await executeQuery('SELECT sqlite_version() as version');
         
-        if (result.data) {
+        if (result.data && result.data.rows && result.data.rows.length > 0) {
           console.log('Conexión exitosa a Turso. Versión SQLite:', result.data.rows[0].version);
           setDbConnected(true);
           
           // Verificar tablas existentes
-          const tablesResult = await executeQuery(`
-            SELECT name FROM sqlite_master 
-            WHERE type='table' 
-            ORDER BY name
-          `);
-          
-          if (tablesResult.data && tablesResult.data.rows.length > 0) {
-            console.log('Tablas disponibles:', tablesResult.data.rows.map(row => row.name).join(', '));
+          try {
+            const tablesResult = await executeQuery(`
+              SELECT name FROM sqlite_master 
+              WHERE type='table' 
+              ORDER BY name
+            `);
+            
+            if (tablesResult.data && tablesResult.data.rows && tablesResult.data.rows.length > 0) {
+              console.log('Tablas disponibles:', tablesResult.data.rows.map(row => row.name).join(', '));
+            } else {
+              console.warn('No se encontraron tablas en la base de datos');
+            }
+          } catch (tablesError) {
+            console.error('Error al consultar las tablas:', tablesError);
           }
           
           return { connected: true, version: result.data.rows[0].version };
         } else {
           console.error('Error al conectar con la base de datos:', result.error);
-          setError('Error al conectar con la base de datos. Verifica tu conexión a internet y las credenciales.');
+          const errorMsg = 'Error al conectar con la base de datos (respuesta incompleta). Verifica tu conexión a internet y las credenciales.';
+          setError(errorMsg);
           setDbConnected(false);
-          return { connected: false, error: result.error };
+          return { connected: false, error: errorMsg };
         }
       } catch (err) {
         console.error('Error al conectar con la base de datos:', err);
-        setError('Error al conectar con la base de datos. Verifica tu conexión a internet y las credenciales.');
+        const errorMsg = `Error al conectar con la base de datos: ${err.message || 'Error desconocido'}. Verifica tu conexión a internet y las credenciales.`;
+        setError(errorMsg);
         setDbConnected(false);
         return { connected: false, error: err };
       }
@@ -64,7 +72,8 @@ export const TursoProvider = ({ children }) => {
     onSuccess: (data) => {
       setDbConnected(data.connected);
       if (!data.connected) {
-        setError('Error al conectar con la base de datos. Verifica tu conexión a internet y las credenciales.');
+        const errorMsg = data.error?.message || 'Error desconocido al conectar con la base de datos';
+        setError(`Error al conectar con la base de datos: ${errorMsg}. Verifica tu conexión a internet y las credenciales.`);
       } else {
         setError(null);
       }
@@ -72,12 +81,14 @@ export const TursoProvider = ({ children }) => {
     onError: (err) => {
       console.error('Error en la consulta de conexión:', err);
       setDbConnected(false);
-      setError('Error al conectar con la base de datos. Verifica tu conexión a internet y las credenciales.');
+      setError(`Error en la consulta de conexión: ${err.message || 'Error desconocido'}. Verifica tu conexión a internet y las credenciales.`);
     },
     // No refrescar automáticamente, solo una vez al inicio
     refetchOnWindowFocus: false,
     refetchOnMount: false,
-    staleTime: Infinity
+    staleTime: Infinity,
+    retry: 2, // Intentar la conexión hasta 3 veces (1 intento inicial + 2 reintentos)
+    retryDelay: 1000 // Esperar 1 segundo entre reintentos
   });
 
   // Función genérica para manejar peticiones a la API con caché

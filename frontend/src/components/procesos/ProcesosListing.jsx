@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
+import { useTheme } from "@/context/ThemeContext";
 import { Input } from "@/components/ui/input";
 import { 
   Plus, 
@@ -58,7 +59,7 @@ const ProcesoCard = React.memo(({ proceso, onView, onEdit, onDelete }) => (
           <Button
             variant="outline"
             size="sm"
-            className="bg-blue-50 hover:bg-blue-100 border-blue-200"
+            className={isDark ? "bg-gray-700 hover:bg-gray-600 border-gray-600 text-blue-400" : "bg-blue-50 hover:bg-blue-100 border-blue-200"}
             onClick={(e) => {
               e.stopPropagation();
               onView(proceso);
@@ -70,7 +71,7 @@ const ProcesoCard = React.memo(({ proceso, onView, onEdit, onDelete }) => (
           <Button
             variant="outline"
             size="sm"
-            className="bg-green-50 hover:bg-green-100 border-green-200"
+            className={isDark ? "bg-gray-700 hover:bg-gray-600 border-gray-600 text-green-400" : "bg-green-50 hover:bg-green-100 border-green-200"}
             onClick={(e) => {
               e.stopPropagation();
               onEdit(proceso);
@@ -82,7 +83,7 @@ const ProcesoCard = React.memo(({ proceso, onView, onEdit, onDelete }) => (
           <Button
             variant="outline"
             size="sm"
-            className="bg-red-50 hover:bg-red-100 border-red-200"
+            className={isDark ? "bg-gray-700 hover:bg-gray-600 border-gray-600 text-red-400" : "bg-red-50 hover:bg-red-100 border-red-200"}
             onClick={(e) => {
               e.stopPropagation();
               onDelete(proceso.id);
@@ -98,6 +99,7 @@ const ProcesoCard = React.memo(({ proceso, onView, onEdit, onDelete }) => (
 ));
 
 function ProcesosListing() {
+  const { isDark } = useTheme();
   const { toast } = useToast();
   const [viewMode, setViewMode] = useState("grid");
   const [isModalOpen, setIsModalOpen] = useState(false);

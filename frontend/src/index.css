@@ -4,6 +4,7 @@
  
 @layer base {
   :root {
+    /* Modo Claro - Variables Base */
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
 
@@ -31,8 +32,49 @@
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 153 33% 9%;
- 
+
+    /* Colores específicos para el modo claro */
+    --sidebar-bg: 0 0% 0%;
+    --sidebar-text: 0 0% 100%;
+    --sidebar-hover: 0 0% 15%;
+    
     --radius: 0.75rem;
+  }
+
+  .dark {
+    /* Modo Oscuro - Variables */
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
+ 
+    --card: 222 47% 15%;
+    --card-foreground: 210 40% 98%;
+ 
+    --popover: 222 47% 11%;
+    --popover-foreground: 210 40% 98%;
+ 
+    --primary: 153 60% 53%;
+    --primary-foreground: 0 0% 100%;
+ 
+    --secondary: 153 43% 35%;
+    --secondary-foreground: 0 0% 100%;
+ 
+    --muted: 223 47% 20%;
+    --muted-foreground: 210 40% 80%;
+ 
+    --accent: 153 43% 35%;
+    --accent-foreground: 0 0% 100%;
+ 
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 210 40% 98%;
+ 
+    --border: 217 33% 25%;
+    --input: 217 33% 25%;
+    --ring: 153 60% 53%;
+
+    /* Colores específicos para el modo oscuro */
+    --sidebar-bg: 223 47% 8%;
+    --sidebar-text: 210 40% 98%;
+    --sidebar-hover: 222 47% 18%;
   }
 }
  

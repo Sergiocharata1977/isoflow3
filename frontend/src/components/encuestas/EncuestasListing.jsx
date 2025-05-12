@@ -17,21 +17,7 @@ import {
   BarChart,
   ChevronRight
 } from "lucide-react";
-import {
-  BarChart as ReBarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  PieChart as RePieChart,
-  Pie,
-  Cell,
-  LineChart as ReLineChart,
-  Line
-} from 'recharts';
+import ReactECharts from 'echarts-for-react';
 import EncuestaModal from "./EncuestaModal";
 import EncuestaSingle from "./EncuestaSingle";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
@@ -411,26 +397,55 @@ function EncuestasListing() {
                   Encuestas por Estado
                 </h3>
                 <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <RePieChart>
-                      <Pie
-                        data={estadoData}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                      >
-                        {estadoData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                      <Legend />
-                    </RePieChart>
-                  </ResponsiveContainer>
+                  <ReactECharts 
+                    option={{
+                      tooltip: {
+                        trigger: 'item',
+                        formatter: '{a} <br/>{b}: {c} ({d}%)'
+                      },
+                      legend: {
+                        orient: 'vertical',
+                        right: 10,
+                        top: 'center',
+                        data: estadoData.map(item => item.name)
+                      },
+                      series: [
+                        {
+                          name: 'Estado',
+                          type: 'pie',
+                          radius: ['40%', '70%'],
+                          avoidLabelOverlap: false,
+                          itemStyle: {
+                            borderRadius: 10,
+                            borderColor: '#fff',
+                            borderWidth: 2
+                          },
+                          label: {
+                            show: false,
+                            position: 'center'
+                          },
+                          emphasis: {
+                            label: {
+                              show: true,
+                              fontSize: '14',
+                              fontWeight: 'bold'
+                            }
+                          },
+                          labelLine: {
+                            show: false
+                          },
+                          data: estadoData.map((item, index) => ({
+                            value: item.value,
+                            name: item.name,
+                            itemStyle: {
+                              color: COLORS[index % COLORS.length]
+                            }
+                          }))
+                        }
+                      ]
+                    }}
+                    style={{ height: '100%', width: '100%' }}
+                  />
                 </div>
               </div>
 
@@ -441,18 +456,43 @@ function EncuestasListing() {
                   Encuestas por Tipo
                 </h3>
                 <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <ReBarChart
-                      data={tipoData}
-                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="value" fill="#10b981" name="Encuestas" />
-                    </ReBarChart>
-                  </ResponsiveContainer>
+                  <ReactECharts 
+                    option={{
+                      tooltip: {
+                        trigger: 'axis',
+                        axisPointer: {
+                          type: 'shadow'
+                        }
+                      },
+                      legend: {
+                        data: ['Encuestas']
+                      },
+                      grid: {
+                        left: '3%',
+                        right: '4%',
+                        bottom: '3%',
+                        containLabel: true
+                      },
+                      xAxis: {
+                        type: 'category',
+                        data: tipoData.map(item => item.name)
+                      },
+                      yAxis: {
+                        type: 'value'
+                      },
+                      series: [
+                        {
+                          name: 'Encuestas',
+                          type: 'bar',
+                          data: tipoData.map(item => item.value),
+                          itemStyle: {
+                            color: '#10b981'
+                          }
+                        }
+                      ]
+                    }}
+                    style={{ height: '100%', width: '100%' }}
+                  />
                 </div>
               </div>
 
@@ -463,19 +503,56 @@ function EncuestasListing() {
                   Tendencia de Encuestas (Últimos 6 meses)
                 </h3>
                 <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <ReLineChart
-                      data={monthData}
-                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Line type="monotone" dataKey="encuestas" stroke="#3b82f6" activeDot={{ r: 8 }} />
-                    </ReLineChart>
-                  </ResponsiveContainer>
+                  <ReactECharts 
+                    option={{
+                      tooltip: {
+                        trigger: 'axis'
+                      },
+                      legend: {
+                        data: ['Encuestas']
+                      },
+                      grid: {
+                        left: '3%',
+                        right: '4%',
+                        bottom: '3%',
+                        containLabel: true
+                      },
+                      xAxis: {
+                        type: 'category',
+                        boundaryGap: false,
+                        data: monthData.map(item => item.name)
+                      },
+                      yAxis: {
+                        type: 'value'
+                      },
+                      series: [
+                        {
+                          name: 'Encuestas',
+                          type: 'line',
+                          data: monthData.map(item => item.encuestas),
+                          itemStyle: {
+                            color: '#3b82f6'
+                          },
+                          areaStyle: {
+                            color: {
+                              type: 'linear',
+                              x: 0,
+                              y: 0,
+                              x2: 0,
+                              y2: 1,
+                              colorStops: [{
+                                offset: 0, color: 'rgba(59, 130, 246, 0.5)'
+                              }, {
+                                offset: 1, color: 'rgba(59, 130, 246, 0.05)'
+                              }]
+                            }
+                          },
+                          smooth: true
+                        }
+                      ]
+                    }}
+                    style={{ height: '100%', width: '100%' }}
+                  />
                 </div>
               </div>
             </div>

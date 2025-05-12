@@ -28,11 +28,11 @@ function UserHeader({ user, onLogout }) {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center space-x-2"
+        className="flex items-center"
       >
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="flex items-center space-x-2 bg-white/10 backdrop-blur-sm border border-white/20">
+            <Button variant="ghost" className="ml-2 flex items-center space-x-2 bg-white/10 backdrop-blur-sm border border-white/20 min-w-[120px]">
               <Avatar className="h-8 w-8 bg-primary">
                 {/* Usar la URL de avatar si existe, o mostrar iniciales */}
                 {user.avatar ? (

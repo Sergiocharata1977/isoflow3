@@ -19,26 +19,12 @@ import {
   LineChart,
   Filter
 } from "lucide-react";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  PieChart as RePieChart,
-  Pie,
-  Cell,
-  LineChart as ReLineChart,
-  Line
-} from 'recharts';
+import ReactECharts from 'echarts-for-react';
 import AuditoriaModal from "./AuditoriaModal";
 import AuditoriaSingle from "./AuditoriaSingle";
 import { jsPDF } from "jspdf";
 import 'jspdf-autotable';
-import { createClient } from '@libsql/client';
+import { tursoClient, executeQuery } from '@/lib/tursoClient';
 import {
   Dialog,
   DialogContent,
@@ -64,11 +50,7 @@ function AuditoriasListing() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [auditoriaToDelete, setAuditoriaToDelete] = useState(null);
 
-  // Cliente Turso
-  const client = createClient({
-    url: "libsql://iso103-1-sergiocharata1977.aws-us-east-1.turso.io",
-    authToken: "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3NDUzMjMwMjIsImlkIjoiNmY3ZjA4ZmEtNTQ0My00ZjQ2LWI4MTMtYmZjY2JhYWJiOTc3IiwicmlkIjoiYzRhNDEzYWItZDdmNi00Y2I4LWEzZjktYjA2MDBmYzM0MjM3In0.gZSBIQ1Xki6KJmWrY_21DLN5mnc7S5dPdSf-NN3vl9MH9M43VOLF1VGKiqQPHeBmwAC6_28cFr1tST5gUlODCQ"
-  });
+  // Usamos el cliente Turso centralizado
 
   useEffect(() => {
     loadData();
@@ -80,12 +62,12 @@ function AuditoriasListing() {
       
       // Intentar cargar desde Turso primero
       try {
-        const result = await client.execute('SELECT * FROM auditorias ORDER BY fecha_programada DESC');
+        const result = await executeQuery('SELECT * FROM auditorias ORDER BY fecha_programada DESC');
         if (result.rows.length > 0) {
           setAuditorias(result.rows);
           
           // Cargar procesos para el filtro
-          const procesosResult = await client.execute('SELECT * FROM procesos');
+          const procesosResult = await executeQuery('SELECT * FROM procesos');
           if (procesosResult.rows.length > 0) {
             setProcesos(procesosResult.rows);
           } else {
@@ -127,82 +109,73 @@ function AuditoriasListing() {
   const saveAuditoriaToTurso = async (auditoria) => {
     try {
       // Verificar si la auditoría ya existe
-      const checkResult = await client.execute({
-        sql: 'SELECT id FROM auditorias WHERE id = ?',
-        args: [auditoria.id]
+      const checkResult = await executeQuery(
+        'SELECT id FROM auditorias WHERE id = ?', [auditoria.id]
       });
 
       if (checkResult.rows.length > 0) {
         // Actualizar
-        await client.execute({
-          sql: `UPDATE auditorias SET 
-                numero = ?, 
+        await executeQuery(
+          `UPDATE auditorias SET 
+                titulo = ?, 
+                descripcion = ?, 
                 tipo = ?, 
-                objetivo = ?, 
-                alcance = ?, 
-                criterios = ?, 
-                responsable = ?, 
                 fecha_programada = ?, 
                 fecha_realizacion = ?, 
+                responsable = ?, 
+                norma = ?, 
                 proceso = ?, 
+                objetivo = ?, 
                 estado = ?, 
-                resultado = ?, 
-                hallazgos = ?, 
-                observaciones = ? 
+                hallazgos = ? 
                 WHERE id = ?`,
-          args: [
-            auditoria.numero,
+          [
+            auditoria.titulo,
+            auditoria.descripcion,
             auditoria.tipo,
-            auditoria.objetivo,
-            auditoria.alcance,
-            auditoria.criterios,
-            auditoria.responsable,
             auditoria.fecha_programada,
             auditoria.fecha_realizacion,
+            auditoria.responsable,
+            auditoria.norma,
             auditoria.proceso,
+            auditoria.objetivo,
             auditoria.estado,
-            auditoria.resultado,
-            auditoria.hallazgos,
-            auditoria.observaciones,
+            JSON.stringify(auditoria.hallazgos || []),
             auditoria.id
           ]
-        });
+        );
       } else {
         // Insertar
-        await client.execute({
-          sql: `INSERT INTO auditorias (
+        await executeQuery(
+          `INSERT INTO auditorias (
                 id, 
-                numero, 
+                titulo, 
+                descripcion, 
                 tipo, 
-                objetivo, 
-                alcance, 
-                criterios, 
-                responsable, 
                 fecha_programada, 
                 fecha_realizacion, 
+                responsable, 
+                norma, 
                 proceso, 
+                objetivo, 
                 estado, 
-                resultado, 
-                hallazgos, 
-                observaciones
-              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          args: [
+                hallazgos
+              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [
             auditoria.id,
-            auditoria.numero,
+            auditoria.titulo,
+            auditoria.descripcion,
             auditoria.tipo,
-            auditoria.objetivo,
-            auditoria.alcance,
-            auditoria.criterios,
-            auditoria.responsable,
             auditoria.fecha_programada,
             auditoria.fecha_realizacion,
+            auditoria.responsable,
+            auditoria.norma,
             auditoria.proceso,
+            auditoria.objetivo,
             auditoria.estado,
-            auditoria.resultado,
-            auditoria.hallazgos,
-            auditoria.observaciones
+            JSON.stringify(auditoria.hallazgos || [])
           ]
-        });
+        );
       }
       return true;
     } catch (error) {
@@ -290,10 +263,7 @@ function AuditoriasListing() {
       
       // Intentar eliminar de Turso primero
       try {
-        await client.execute({
-          sql: 'DELETE FROM auditorias WHERE id = ?',
-          args: [id]
-        });
+        await executeQuery('DELETE FROM auditorias WHERE id = ?', [id]);
       } catch (dbError) {
         console.log("Fallback a localStorage para eliminar:", dbError);
       }
@@ -520,26 +490,55 @@ function AuditoriasListing() {
                   Auditorías por Estado
                 </h3>
                 <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <RePieChart>
-                      <Pie
-                        data={estadoData}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                      >
-                        {estadoData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                      <Legend />
-                    </RePieChart>
-                  </ResponsiveContainer>
+                  <ReactECharts 
+                    option={{
+                      tooltip: {
+                        trigger: 'item',
+                        formatter: '{a} <br/>{b}: {c} ({d}%)'
+                      },
+                      legend: {
+                        orient: 'vertical',
+                        right: 10,
+                        top: 'center',
+                        data: estadoData.map(item => item.name)
+                      },
+                      series: [
+                        {
+                          name: 'Estado',
+                          type: 'pie',
+                          radius: ['40%', '70%'],
+                          avoidLabelOverlap: false,
+                          itemStyle: {
+                            borderRadius: 10,
+                            borderColor: '#fff',
+                            borderWidth: 2
+                          },
+                          label: {
+                            show: false,
+                            position: 'center'
+                          },
+                          emphasis: {
+                            label: {
+                              show: true,
+                              fontSize: '14',
+                              fontWeight: 'bold'
+                            }
+                          },
+                          labelLine: {
+                            show: false
+                          },
+                          data: estadoData.map((item, index) => ({
+                            value: item.value,
+                            name: item.name,
+                            itemStyle: {
+                              color: COLORS[index % COLORS.length]
+                            }
+                          }))
+                        }
+                      ]
+                    }}
+                    style={{ height: '100%', width: '100%' }}
+                  />
                 </div>
               </div>
 
@@ -550,19 +549,44 @@ function AuditoriasListing() {
                   Auditorías por Proceso
                 </h3>
                 <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={procesoData}
-                      layout="vertical"
-                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis type="number" />
-                      <YAxis dataKey="name" type="category" width={100} />
-                      <Tooltip />
-                      <Bar dataKey="value" fill="#10b981" name="Auditorías" />
-                    </BarChart>
-                  </ResponsiveContainer>
+                  <ReactECharts 
+                    option={{
+                      tooltip: {
+                        trigger: 'axis',
+                        axisPointer: {
+                          type: 'shadow'
+                        }
+                      },
+                      legend: {
+                        data: ['Auditorías']
+                      },
+                      grid: {
+                        left: '3%',
+                        right: '4%',
+                        bottom: '3%',
+                        containLabel: true
+                      },
+                      xAxis: {
+                        type: 'value',
+                        boundaryGap: [0, 0.01]
+                      },
+                      yAxis: {
+                        type: 'category',
+                        data: procesoData.map(item => item.name)
+                      },
+                      series: [
+                        {
+                          name: 'Auditorías',
+                          type: 'bar',
+                          data: procesoData.map(item => item.value),
+                          itemStyle: {
+                            color: '#10b981'
+                          }
+                        }
+                      ]
+                    }}
+                    style={{ height: '100%', width: '100%' }}
+                  />
                 </div>
               </div>
 
@@ -573,19 +597,56 @@ function AuditoriasListing() {
                   Tendencia de Auditorías (Últimos 6 meses)
                 </h3>
                 <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <ReLineChart
-                      data={monthData}
-                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Line type="monotone" dataKey="auditorias" stroke="#3b82f6" activeDot={{ r: 8 }} />
-                    </ReLineChart>
-                  </ResponsiveContainer>
+                  <ReactECharts 
+                    option={{
+                      tooltip: {
+                        trigger: 'axis'
+                      },
+                      legend: {
+                        data: ['Auditorías']
+                      },
+                      grid: {
+                        left: '3%',
+                        right: '4%',
+                        bottom: '3%',
+                        containLabel: true
+                      },
+                      xAxis: {
+                        type: 'category',
+                        boundaryGap: false,
+                        data: monthData.map(item => item.name)
+                      },
+                      yAxis: {
+                        type: 'value'
+                      },
+                      series: [
+                        {
+                          name: 'Auditorías',
+                          type: 'line',
+                          data: monthData.map(item => item.auditorias),
+                          itemStyle: {
+                            color: '#3b82f6'
+                          },
+                          areaStyle: {
+                            color: {
+                              type: 'linear',
+                              x: 0,
+                              y: 0,
+                              x2: 0,
+                              y2: 1,
+                              colorStops: [{
+                                offset: 0, color: 'rgba(59, 130, 246, 0.5)'
+                              }, {
+                                offset: 1, color: 'rgba(59, 130, 246, 0.05)'
+                              }]
+                            }
+                          },
+                          smooth: true
+                        }
+                      ]
+                    }}
+                    style={{ height: '100%', width: '100%' }}
+                  />
                 </div>
               </div>
             </div>
