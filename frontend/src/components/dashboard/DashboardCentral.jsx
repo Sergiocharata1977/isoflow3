@@ -1,5 +1,6 @@
 import React from "react";
 import { useTheme } from "@/context/ThemeContext";
+import ThemeToggle from "../theme/ThemeToggle";
 import { 
   Card, 
   Title, 
@@ -84,13 +85,16 @@ function DashboardCentral() {
 
   return (
     <div className="p-6">
-      <div className="mb-8">
-        <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-          Tablero Central
-        </h1>
-        <p className={`mt-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          Indicadores clave de desempeño del Sistema de Gestión de Calidad
-        </p>
+      <div className="mb-8 flex justify-between items-center">
+        <div>
+          <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+            Tablero Central
+          </h1>
+          <p className={`mt-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+            Indicadores clave de desempeño del Sistema de Gestión de Calidad
+          </p>
+        </div>
+        <ThemeToggle />
       </div>
 
       {/* Tarjetas de KPI principales */}

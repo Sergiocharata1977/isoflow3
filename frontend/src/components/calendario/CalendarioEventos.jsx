@@ -18,6 +18,7 @@ const TIPOS_EVENTO = {
 };
 
 export default function CalendarioEventos() {
+  const calendarRef = React.useRef(null);
   const [events, setEvents] = useState([
     {
       id: '1',
@@ -132,6 +133,70 @@ export default function CalendarioEventos() {
   return (
     <Card className="p-6">
       <div className="space-y-6">
+        <div className="flex justify-end items-center gap-2 mb-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const calendarApi = calendarRef.current.getApi();
+              calendarApi.today();
+            }}
+          >
+            Hoy
+          </Button>
+          <div className="border-l h-6 mx-2" />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const calendarApi = calendarRef.current.getApi();
+              calendarApi.prev();
+            }}
+          >
+            Anterior
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const calendarApi = calendarRef.current.getApi();
+              calendarApi.next();
+            }}
+          >
+            Siguiente
+          </Button>
+          <div className="border-l h-6 mx-2" />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const calendarApi = calendarRef.current.getApi();
+              calendarApi.changeView('dayGridMonth');
+            }}
+          >
+            Mes
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const calendarApi = calendarRef.current.getApi();
+              calendarApi.changeView('timeGridWeek');
+            }}
+          >
+            Semana
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const calendarApi = calendarRef.current.getApi();
+              calendarApi.changeView('timeGridDay');
+            }}
+          >
+            Día
+          </Button>
+        </div>
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-bold">Calendario de Eventos</h2>
           <div className="flex gap-2">
@@ -147,11 +212,12 @@ export default function CalendarioEventos() {
         </div>
 
         <FullCalendar
+          ref={calendarRef}
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
           headerToolbar={{
-            left: 'prev,next today',
+            left: '',
             center: 'title',
-            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            right: ''
           }}
           initialView="dayGridMonth"
           editable={true}
