@@ -41,12 +41,26 @@ function MejorasListing() {
   const [mejoras, setMejoras] = useState([]);
   const [procesoFiltro, setProcesoFiltro] = useState("");
   const [procesos, setProcesos] = useState([]);
-  const [viewMode, setViewMode] = useState("grid");
-  const [formType, setFormType] = useState("registro"); // registro, planificacion, implementacion
+  const [formType, setFormType] = useState("registro");
   const [showSingleView, setShowSingleView] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [mejoraToDelete, setMejoraToDelete] = useState(null);
 
+  // Filtrar mejoras basado en búsqueda y proceso
+  const filteredMejoras = React.useMemo(() => 
+    (mejoras || []).filter(mejora => {
+      const searchTermLower = searchTerm.toLowerCase();
+      const titulo = mejora.titulo || '';
+      const detalle = mejora.detalle || '';
+      const proceso = mejora.proceso || '';
+      
+      return (
+        (titulo.toLowerCase().includes(searchTermLower) ||
+         detalle.toLowerCase().includes(searchTermLower)) &&
+        (!procesoFiltro || proceso === procesoFiltro)
+      );
+    }), [mejoras, searchTerm, procesoFiltro]
+  );
   // Cliente Turso
   const client = createClient({
     url: "libsql://iso103-1-sergiocharata1977.aws-us-east-1.turso.io",
@@ -61,13 +75,21 @@ function MejorasListing() {
     try {
       // Intentar cargar desde Turso primero
       try {
-        const result = await client.execute('SELECT * FROM mejoras');
+        const result = await client.execute({
+          sql: 'SELECT * FROM mejoras ORDER BY fechaCreacion DESC',
+          args: []
+        });
         if (result.rows.length > 0) {
           setMejoras(result.rows);
           return;
         }
       } catch (dbError) {
-        console.log("Fallback a localStorage:", dbError);
+        console.error("Error al cargar desde Turso:", dbError);
+        toast({
+          title: "Error de conexión",
+          description: "No se pudo conectar a la base de datos",
+          variant: "destructive"
+        });
       }
 
       // Fallback a localStorage
@@ -319,12 +341,7 @@ function MejorasListing() {
     }
   };
 
-  const filteredMejoras = mejoras.filter(mejora =>
-    (mejora.titulo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    mejora.detalle?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    mejora.proceso?.toLowerCase().includes(searchTerm.toLowerCase())) &&
-    (!procesoFiltro || mejora.proceso === procesoFiltro)
-  );
+
 
   const renderGridView = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -451,45 +468,60 @@ function MejorasListing() {
     );
   }
 
+  if (showSingleView && selectedMejora) {
+    return (
+      <MejoraSingle
+        mejora={selectedMejora}
+        onClose={() => {
+          setShowSingleView(false);
+          setSelectedMejora(null);
+        }}
+        onEdit={handleEdit}
+        onDelete={confirmDelete}
+        onUpdateEstado={handleUpdateEstado}
+      />
+    );
+  }
+
   return (
-    <div className="space-y-8">
-      <Tabs defaultValue={activeTab} onValueChange={setActiveTab}>
-        <div className="flex justify-between items-center mb-6">
-          <TabsList>
-            <TabsTrigger value="dashboard">
-              <BarChart2 className="h-4 w-4 mr-2" />
-              Dashboard
-            </TabsTrigger>
-            <TabsTrigger value="grid">
-              <LayoutGrid className="h-4 w-4 mr-2" />
-              Vista Tarjetas
-            </TabsTrigger>
-            <TabsTrigger value="list">
-              <List className="h-4 w-4 mr-2" />
-              Vista Lista
-            </TabsTrigger>
-          </TabsList>
+    <div className="container mx-auto p-4">
+      {/* Header */}
+      <div className="bg-card shadow-sm rounded-lg p-4 mb-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
+          <h1 className="text-2xl font-bold">Sistema de Gestión de Mejoras</h1>
           <div className="flex items-center space-x-2">
-            <Button variant="outline" onClick={() => {}}>
-              <Download className="mr-2 h-4 w-4" />
-              Exportar
-            </Button>
-            <Button onClick={() => {
-              setSelectedMejora(null);
-              setFormType("registro");
-              setIsModalOpen(true);
-            }}>
-              <Plus className="mr-2 h-4 w-4" />
+            <Button
+              onClick={() => {
+                setIsModalOpen(true);
+                setFormType("registro");
+                setSelectedMejora(null);
+              }}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              <Plus className="h-4 w-4 mr-2" />
               Nueva Mejora
             </Button>
           </div>
         </div>
+      </div>
+
+      <Tabs defaultValue="dashboard" value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="mb-4">
+          <TabsTrigger value="dashboard" className="flex items-center">
+            <BarChart2 className="h-4 w-4 mr-2" />
+            Dashboard
+          </TabsTrigger>
+          <TabsTrigger value="listado" className="flex items-center">
+            <List className="h-4 w-4 mr-2" />
+            Listado
+          </TabsTrigger>
+        </TabsList>
 
         <TabsContent value="dashboard">
           <MejorasDashboard mejoras={mejoras} />
         </TabsContent>
 
-        <TabsContent value="grid">
+        <TabsContent value="listado">
           <div className="space-y-6">
             {/* Toolbar */}
             <div className="flex items-center space-x-4">
@@ -518,151 +550,153 @@ function MejorasListing() {
                   ))}
                 </select>
               </div>
+            <div className="flex items-center space-x-2">
+              <Button
+                onClick={() => {
+                  const csvContent = generateCSV(mejoras);
+                  downloadCSV(csvContent, "mejoras.csv");
+                }}
+                variant="outline"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Exportar
+              </Button>
             </div>
-
-            {renderGridView()}
           </div>
-        </TabsContent>
 
-        <TabsContent value="list">
-          <div className="space-y-6">
-            {/* Toolbar */}
-            <div className="flex items-center space-x-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <input
-                  type="text"
-                  placeholder="Buscar mejoras..."
-                  className="pl-8 h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-              <div className="flex items-center space-x-2">
-                <Filter className="h-4 w-4 text-muted-foreground" />
-                <select
-                  className="h-10 rounded-md border border-input bg-background px-3 text-sm"
-                  value={procesoFiltro}
-                  onChange={(e) => setProcesoFiltro(e.target.value)}
-                >
-                  <option value="">Todos los procesos</option>
-                  {procesos.map((proceso) => (
-                    <option key={proceso.id} value={proceso.titulo}>
-                      {proceso.titulo}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {renderListView()}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredMejoras.map((mejora) => (
+              <motion.div
+                key={mejora.id}
+                className="bg-card rounded-lg shadow-sm p-6 space-y-4"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <h3 className="text-lg font-semibold">{mejora.titulo}</h3>
+                <p className="text-sm text-muted-foreground">{mejora.detalle}</p>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm">{mejora.proceso}</span>
+                  <div className="flex space-x-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleViewMejora(mejora)}
+                    >
+                      Ver más
+                    </Button>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
           </div>
-        </TabsContent>
-      </Tabs>
+        </div>
+      </TabsContent>
+    </Tabs>
 
-      {/* Modal para formulario de mejora */}
-      {isModalOpen && (
-        <Dialog open={isModalOpen} onOpenChange={() => {
-          setIsModalOpen(false);
-          setSelectedMejora(null);
-        }}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>
-                {selectedMejora ? `Editar Mejora: ${selectedMejora.titulo}` : "Nueva Mejora"}
-              </DialogTitle>
-            </DialogHeader>
-            
-            {/* Pestañas para diferentes formularios */}
-            <div className="flex space-x-2 mb-4">
-              <Button
-                type="button"
-                variant={formType === "registro" ? "secondary" : "ghost"}
-                onClick={() => setFormType("registro")}
-                className="flex items-center"
-              >
-                <ArrowUpCircle className="h-4 w-4 mr-2" />
-                Registro
-              </Button>
-              <Button
-                type="button"
-                variant={formType === "planificacion" ? "secondary" : "ghost"}
-                onClick={() => setFormType("planificacion")}
-                className="flex items-center"
-                disabled={!selectedMejora}
-              >
-                <ClipboardList className="h-4 w-4 mr-2" />
-                Planificación
-              </Button>
-              <Button
-                type="button"
-                variant={formType === "implementacion" ? "secondary" : "ghost"}
-                onClick={() => setFormType("implementacion")}
-                className="flex items-center"
-                disabled={!selectedMejora || !selectedMejora.estadosCompletados?.includes("Planificación control")}
-              >
-                <ClipboardCheck className="h-4 w-4 mr-2" />
-                Implementación
-              </Button>
-            </div>
-            
-            {formType === "registro" && (
-              <MejoraFormulario
-                onSave={handleSave}
-                onCancel={() => {
-                  setIsModalOpen(false);
-                  setSelectedMejora(null);
-                }}
-                mejora={selectedMejora}
-              />
-            )}
-            
-            {formType === "planificacion" && (
-              <MejoraPlanificacionForm
-                onSave={handlePlanificacionSave}
-                onCancel={() => {
-                  setIsModalOpen(false);
-                  setSelectedMejora(null);
-                }}
-                isLoading={false}
-              />
-            )}
-            
-            {formType === "implementacion" && (
-              <MejoraImplementacionForm
-                onSave={handleImplementacionSave}
-                onCancel={() => {
-                  setIsModalOpen(false);
-                  setSelectedMejora(null);
-                }}
-                isLoading={false}
-              />
-            )}
-          </DialogContent>
-        </Dialog>
-      )}
+    {/* Modal para formulario de mejora */}
+    {isModalOpen && (
+      <Dialog open={isModalOpen} onOpenChange={() => {
+        setIsModalOpen(false);
+        setSelectedMejora(null);
+      }}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedMejora ? `Editar Mejora: ${selectedMejora.titulo}` : "Nueva Mejora"}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {/* Pestañas para diferentes formularios */}
+          <div className="flex space-x-2 mb-4">
+            <Button
+              type="button"
+              variant={formType === "registro" ? "secondary" : "ghost"}
+              onClick={() => setFormType("registro")}
+              className="flex items-center"
+            >
+              <ArrowUpCircle className="h-4 w-4 mr-2" />
+              Registro
+            </Button>
+            <Button
+              type="button"
+              variant={formType === "planificacion" ? "secondary" : "ghost"}
+              onClick={() => setFormType("planificacion")}
+              className="flex items-center"
+              disabled={!selectedMejora}
+            >
+              <ClipboardList className="h-4 w-4 mr-2" />
+              Planificación
+            </Button>
+            <Button
+              type="button"
+              variant={formType === "implementacion" ? "secondary" : "ghost"}
+              onClick={() => setFormType("implementacion")}
+              className="flex items-center"
+              disabled={!selectedMejora || !selectedMejora.estadosCompletados?.includes("Planificación control")}
+            >
+              <ClipboardCheck className="h-4 w-4 mr-2" />
+              Implementación
+            </Button>
+          </div>
+          
+          {formType === "registro" && (
+            <MejoraFormulario
+              onSave={handleSave}
+              onCancel={() => {
+                setIsModalOpen(false);
+                setSelectedMejora(null);
+              }}
+              mejora={selectedMejora}
+            />
+          )}
+          
+          {formType === "planificacion" && (
+            <MejoraPlanificacionForm
+              onSave={handlePlanificacionSave}
+              onCancel={() => {
+                setIsModalOpen(false);
+                setSelectedMejora(null);
+              }}
+              isLoading={false}
+            />
+          )}
+          
+          {formType === "implementacion" && (
+            <MejoraImplementacionForm
+              onSave={handleImplementacionSave}
+              onCancel={() => {
+                setIsModalOpen(false);
+                setSelectedMejora(null);
+              }}
+              isLoading={false}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+    )}
 
-      {/* Diálogo de confirmación para eliminar */}
-      {isDeleteDialogOpen && (
-        <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Confirmar eliminación</DialogTitle>
-            </DialogHeader>
-            <p className="py-4">¿Estás seguro de que deseas eliminar esta mejora? Esta acción no se puede deshacer.</p>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
-                Cancelar
-              </Button>
-              <Button variant="destructive" onClick={() => handleDelete(mejoraToDelete)}>
-                Eliminar
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
-    </div>
-  );
+    {/* Diálogo de confirmación para eliminar */}
+    {isDeleteDialogOpen && (
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Confirmar eliminación</DialogTitle>
+          </DialogHeader>
+          <p className="py-4">¿Estás seguro de que deseas eliminar esta mejora? Esta acción no se puede deshacer.</p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button variant="destructive" onClick={() => handleDelete(mejoraToDelete)}>
+              Eliminar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    )}
+  </div>
+);
 }
 
 export default MejorasListing;

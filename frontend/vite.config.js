@@ -142,6 +142,17 @@ export default defineConfig({
     },
     allowedHosts: true,
   },
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+        },
+      },
+    },
+  },
   resolve: {
     extensions: ['.jsx', '.js', '.tsx', '.ts', '.json', '.scss'],
     alias: {
@@ -154,5 +165,6 @@ export default defineConfig({
         additionalData: '@import "@/styles/variables";'
       }
     }
-  }
+  },
+  base: '/',
 });
