@@ -61,6 +61,7 @@ import NoticiasListing from "../noticias/NoticiasListing";
 import ProductosListing from "../productos/ProductosListing";
 import UserHeader from "../auth/UserHeader";
 import DashboardCentral from "../dashboard/DashboardCentral";
+import CalendarioEventos from "../calendario/CalendarioEventos";
 
 const MenuPrincipal = ({ onLogout }) => {
   const { isDark } = useTheme();
@@ -123,6 +124,8 @@ const MenuPrincipal = ({ onLogout }) => {
         return <MejorasListing />;
       case "productos":
         return <ProductosListing />;
+      case "calendario":
+        return <CalendarioEventos />;
       default:
         return <SectionPlaceholder sectionName={selectedSection} />;
     }
@@ -368,6 +371,18 @@ const MenuPrincipal = ({ onLogout }) => {
           >
             <BookOpen className="h-5 w-5 mr-2" />
             <span>Puntos de Norma</span>
+          </button>
+
+          <button
+            onClick={() => handleSectionChange("calendario")}
+            className={`flex items-center w-full px-4 py-2 text-left ${
+              selectedSection === "calendario"
+                ? "bg-green-600 text-white"
+                : "text-gray-300 hover:bg-gray-800"
+            }`}
+          >
+            <Calendar className="h-5 w-5 mr-2" />
+            <span>Calendario</span>
           </button>
 
           {/* Planificación y Desarrollo de Productos */}

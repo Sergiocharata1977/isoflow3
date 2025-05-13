@@ -10,10 +10,11 @@
   },
   "dependencies": {
     "@emotion/is-prop-valid": "^1.2.1",
-    "@fullcalendar/daygrid": "^6.1.10",
-    "@fullcalendar/interaction": "^6.1.10",
-    "@fullcalendar/react": "^6.1.10",
-    "@fullcalendar/timegrid": "^6.1.10",
+    "@fullcalendar/core": "^6.1.17",
+    "@fullcalendar/daygrid": "^6.1.17",
+    "@fullcalendar/interaction": "^6.1.17",
+    "@fullcalendar/react": "^6.1.17",
+    "@fullcalendar/timegrid": "^6.1.17",
     "@libsql/client": "^0.15.4",
     "@radix-ui/react-alert-dialog": "^1.0.5",
     "@radix-ui/react-avatar": "^1.0.3",
@@ -50,6 +51,7 @@
     "react-swipeable": "^7.0.1",
     "recharts": "^2.12.0",
     "socket.io-client": "^4.7.4",
+    "sonner": "^2.0.3",
     "tailwind-merge": "^1.14.0",
     "tailwindcss-animate": "^1.0.7",
     "xlsx": "^0.18.5"

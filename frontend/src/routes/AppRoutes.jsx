@@ -7,6 +7,7 @@ import ProtectedRoute from '@/components/auth/ProtectedRoute';
 const LoginPage = lazy(() => import('@/pages/auth/login'));
 const MenuPrincipal = lazy(() => import('@/components/menu/MenuPrincipal'));
 const Unauthorized = lazy(() => import('@/pages/Unauthorized'));
+const CalendarioEventos = lazy(() => import('@/components/calendario/CalendarioEventos'));
 
 // Componente de carga para las importaciones lazy
 const LoadingFallback = () => (
