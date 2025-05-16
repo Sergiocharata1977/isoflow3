@@ -28,19 +28,22 @@ export default function TopHeader() {
 
   return (
     <div className="fixed top-0 left-0 right-0 bg-green-600/10 backdrop-blur-sm z-50 border-b h-12">
-      <div className="flex justify-between items-center px-4 py-2">
-        <div className="flex items-center gap-4">
+      <div className="flex justify-between items-center px-2 sm:px-4 py-1 sm:py-2 min-h-[48px]">
+        {/* Logo o ThemeToggle */}
+        <div className="flex items-center gap-2 sm:gap-4">
           <ThemeToggle />
         </div>
 
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-2 border-r pr-4">
-            <span className="text-sm font-medium">
+        {/* Usuario y logout */}
+        <div className="flex items-center gap-1 sm:gap-2">
+          <div className="flex items-center gap-1 sm:gap-2 border-r pr-2 sm:pr-4 max-w-[120px] sm:max-w-none overflow-hidden">
+            <span className="hidden xs:inline text-xs sm:text-sm font-medium truncate">
               {currentUser?.displayName || currentUser?.email || 'Usuario'}
             </span>
             <button
               onClick={() => setShowLogoutConfirm(true)}
-              className="p-2 hover:bg-gray-200 rounded-full transition-colors"
+              className="p-1 sm:p-2 hover:bg-gray-200 rounded-full transition-colors"
+              aria-label="Cerrar sesión"
             >
               <LogOut className="h-5 w-5" />
             </button>
